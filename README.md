@@ -1,8 +1,14 @@
 # wapi
 Wavelet Aided Parametric Imaging (WAPI) for Positron Emission Tomography (PET)
 
-Welcome to the WAPI Toolbox!
+Welcome to the WAPI MATLAB Toolbox!
 ----------------------------
+
+Requirements:
+-------------
+MATLAB (R2014b the latest tested but may work with newer versions)
+Image toolbox (probably needed)
+SPM5 toolbox (or later)
 
 Installation:
 -------------
@@ -12,18 +18,20 @@ Installation:
 Usage:
 ------
 Recommended is to fire up the GUI by invoking the command in MATLAB:
-wapi_gui
+`wapi_gui`
 
 Help:
 -----
 Click in the WAPI GUI, or just hover above any entry field in the dialog. 
 Alternatively, invoke the command in MATLAB:
-wapi_help
+`wapi_help`
+or:
+`wapi_doc`
 
 License:
 --------
 Yes, there is one (and some), look at:
-wapi_license_gpl3_0.txt        (for WAPI proper functions)
+LICENSE                        (for WAPI proper functions)
 piw_licence.man                (for the PIWAVE helper functions)
 uvi_lemarie.m                  (summary for Uvi_Wave helper function, 
                                otherwise it has the same license as PIWAVE, 

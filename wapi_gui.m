@@ -8,7 +8,7 @@ function varargout = wapi_gui(varargin)
 % See also: WAPI_WAPI
 
 %
-%     Copyright (C) 2022 by Zsolt Cselényi
+%     Copyright (C) 2022 by Zsolt Cselnyi
 %
 %     The WAPI toolbox (collection of functions listed under the heading
 %     "Proper WAPI toolbox functions (toolbox manifest)" in wapi_help.m
@@ -25,7 +25,7 @@ function varargout = wapi_gui(varargin)
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
-%     Author: Zsolt Cselényi
+%     Author: Zsolt Cselnyi
 %     e-mail: zsolt.cselenyi@ki.se
 %
 %     WAPI 1.1 2022-04-14
@@ -250,15 +250,26 @@ if isnan(k2ref)
 end
 limsStr=get(handles.limsEdit,'String');
 lims=str2num(limsStr); %#ok<ST2NM>
+targetmaskfile=get(handles.targetmaskfileEdit,'String');
+if ~isempty(targetmaskfile) && ~exist(targetmaskfile,'file')
+    errordlg(sprintf('%s optional argument points to missing file',get(handles.targetmaskfileLabel,'String')),'WAPI','modal');
+    return;
+end
+targetmaskpadding=str2double(get(handles.targetmaskpaddingEdit,'String'));
+if isnan(targetmaskpadding)
+    targetmaskpadding=0;
+end
+deleteoutputwd3=get(handles.deleteoutputwd3Checkbox,'Value')>0;
+opts=struct('refmaskfile',refmaskfile,'weights',weights,'k2ref',k2ref,'lims',lims,'targetmaskfile',targetmaskfile,'targetmaskpadding',targetmaskpadding,'deleteoutputwd3',deleteoutputwd3);
 
 try
     set(handles.calculate,'Enable','off');
     tic;
-    outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,outfname,numpoints,refmaskfile,weights,k2ref,lims);
+    outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,outfname,numpoints,opts);
     t=toc;
-catch
+catch E
     set(handles.calculate,'Enable','on');
-    rethrow(lasterror);
+    rethrow(E);
 end
 set(handles.calculate,'Enable','on');
 
@@ -871,3 +882,102 @@ function helpButton_Callback(hObject, eventdata, handles)
 doc wapi_wapi
 
 
+
+
+
+function targetmaskfileEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to targetmaskfileEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of targetmaskfileEdit as text
+%        str2double(get(hObject,'String')) returns contents of targetmaskfileEdit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function targetmaskfileEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to targetmaskfileEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in targetmaskfileBrowse.
+function targetmaskfileBrowse_Callback(hObject, eventdata, handles)
+% hObject    handle to targetmaskfileBrowse (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+targetmaskfile=get(handles.targetmaskfileEdit,'String');
+if isempty(targetmaskfile)
+    lastpath=handles.lastpath;
+else
+    lastpath=targetmaskfile;
+end
+[filename, pathname] = uigetfile( { ...
+    '*.nii', 'NIfTI-1 Images (*.nii)'}, ...
+    'Pick an image file', lastpath);
+if isequal(filename, 0)
+    return;
+end
+targetmaskfile=fullfile(pathname, filename);
+set(handles.targetmaskfileEdit,'String', targetmaskfile);
+handles.lastpath = pathname;
+
+% set(handles.reffnameLabel,'ForegroundColor',[0 0 0]);
+
+% Update handles structure
+guidata(hObject, handles);
+
+
+function targetmaskpaddingEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to targetmaskpaddingEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of targetmaskpaddingEdit as text
+%        str2double(get(hObject,'String')) returns contents of targetmaskpaddingEdit as a double
+targetmaskpaddingStr = get(hObject, 'String');
+if isempty(targetmaskpaddingStr)
+    return;
+end
+
+targetmaskpadding=str2double(targetmaskpaddingStr);
+
+if isnan(targetmaskpadding) || targetmaskpadding<0 || targetmaskpadding>50 || ~isequal(targetmaskpadding,real(targetmaskpadding)) || isinf(targetmaskpadding) || targetmaskpadding~=round(targetmaskpadding)
+    set(hObject, 'String', 1);
+    errordlg('Input must be an integer value between 0 and 50','Error');
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function targetmaskpaddingEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to targetmaskpaddingEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in deleteoutputwd3Checkbox.
+function deleteoutputwd3Checkbox_Callback(hObject, eventdata, handles)
+% hObject    handle to deleteoutputwd3Checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of deleteoutputwd3Checkbox
+
+
+% --- Executes during object creation, after setting all properties.
+function deleteoutputwd3Checkbox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to deleteoutputwd3Checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called

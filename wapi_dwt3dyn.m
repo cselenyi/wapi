@@ -39,11 +39,17 @@ function wapi_dwt3dyn(infname,outfname,d,varargin)
 %               should be used (if st==1) or dyadic (if st==0). If not
 %               specified then dyadic WT is used.
 %
-% lims          Optional argument. You must precede it with the string
+% limits        Optional argument. You must precede it with the string
 %               argument 'limits' to indicate its presence. This argument
 %               can be used to limit the WT to only certain frames and/or a
 %               certain sub-volume of the PET image. See help for
 %               <a href="matlab: help wapi_wapi">wapi_wapi</a> for a detailed description.
+%
+% targetmask    Optional argument. You must precede it with the string
+%               argument 'targetmask' to indicate its presence. This argument
+%               can be used to limit the WT to only certain region of the image. 
+%               Voxels outside the target mask will be zeroed before the wavelet
+%               transform. See help for <a href="matlab: help wapi_wapi">wapi_wapi</a> for a detailed description.
 %
 
 %
@@ -67,19 +73,32 @@ function wapi_dwt3dyn(infname,outfname,d,varargin)
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     WAPI 1.2 2022-09-27
 
 
 nArgs=nargin;
 limits=[];
+targetmask=[];
+killArgs=[];
 for i=1:numel(varargin)
-    if ischar(varargin{i}) && strcmpi(varargin{i},'limits')
-        limits=varargin{i+1};
-        varargin(i:i+1)=[];
-        nArgs=nArgs-2;
-        break;
+    if ischar(varargin{i})
+        if any(strcmpi({ 'limits', 'framelimits','targetmask'},varargin{i}))
+            switch lower(varargin{i})
+                case 'framelimits' % must be 2-element vector
+                    limits=varargin{i+1};
+                    limits=[NaN([2 3]) limits(:)];
+                case 'limits' % must be 2x4 matrix
+                    limits=varargin{i+1};
+				case 'targetmask'
+					targetmask=varargin{i+1};
+            end
+            killArgs=[killArgs i i+1]; %#ok<AGROW>
+            nArgs=nArgs-2;
+            %break;
+        end
     end
 end
+varargin(killArgs)=[];
 if nArgs==5 || nArgs==7
   st=0;
 end
@@ -119,16 +138,38 @@ if invol.size(4)==1
 end
 sz=invol.size;
 
-if ~isempty(limits)
-    framelimits=limits(:,4)';
-else
+if isempty(limits)
+    fullvol=1;
+    limits=[1 1 1 1; sz];
     framelimits=[1 sz(4)];
+else
+    if isnan(limits(1))
+        fullvol=1;
+        limits=[1 1 1 limits(1,4); sz(1:3) limits(2,4)];
+    elseif ~isequal(limits(:,1:3), [1 1 1; sz(1:3)])
+        fullvol=0;
+    else
+        fullvol=1;
+    end
+    framelimits=limits(:,4)';
 end
+if ~isempty(targetmask) && ~fullvol
+	if isequal(size(targetmask),sz(1:3))
+		targetmask=targetmask(limits(1,1):limits(2,1),limits(1,2):limits(2,2),limits(1,3):limits(2,3));
+	elseif ~isequal(size(targetmask),diff(limits(:,1:3))+1)
+		error('Target mask must have the same size either as the original volume or as the clipped volume when using spatial limits');
+	end
+end
+targetmask=targetmask==0; % INVERTED!!
+
 for fr=framelimits(1):framelimits(2)
     volume_dat=wapi_getframe(invol,fr);
-    if ~isempty(limits)
-        volume_dat=volume_dat(limits(1,1):limits(2,1),limits(1,2):limits(2,2),limits(1,3):limits(2,3));
-    end
+	if ~fullvol
+		volume_dat=volume_dat(limits(1,1):limits(2,1),limits(1,2):limits(2,2),limits(1,3):limits(2,3));
+	end
+	if ~isempty(targetmask)
+		volume_dat(targetmask)=0;
+	end
     fr_fname=strcat(outfname,num2str(fr-framelimits(1)+1));
     fid=fopen(fr_fname,'w','l');
     fwrite(fid,fr-framelimits(1)+1,'double');

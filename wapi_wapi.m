@@ -1,4 +1,4 @@
-function outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,outfname,numpoints,refmaskfile,weights,k2ref,lims)
+function outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,outfname,numpoints,options) % ,refmaskfile,weights,k2ref,lims)
 %wapi_wapi              Wavelet Aided Parametric Imaging (WAPI)
 %
 % Wavelet estimation of dynamic (4D) PET images using 3D wavelet analysis
@@ -17,25 +17,25 @@ function outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,ou
 % retained (this file is created in the same folder as the output
 % parametric image).
 %
-% Version 1.1 - 2022-04-14
+% Version 1.2 - 2022-09-27
 %
 % Usage:
 % wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,outfname, ...
-%              numpoints,[refmaskfile],[weights],[k2ref],[lims])
+%              numpoints,[options])
 %
 % Inputs:
 %
-%       infname     <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','infnameEdit'));catch;end;">4D PET image</a>:
+%    infname        <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','infnameEdit'));catch;end;">4D PET image</a>:
 %                   Name of the file containing the input 4D PET image
 %                   data. See help for <a href="matlab: help wapi_readim">wapi_readim</a> for a list of supported
 %                   file types.
 %
-%       tmsname     <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','tmsnameEdit'));catch;end;">Frame (scaling &) timing file</a>:
+%    tmsname        <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','tmsnameEdit'));catch;end;">Frame (scaling &) timing file</a>:
 %                   Name of additional file containing PET frame timing
 %                   and/or scaling information. Required only in case of
 %                   certain 4D PET image file types.
 %
-%       reffname    <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','reffnameEdit'));catch;end;">Input function TAC file</a>:
+%    reffname       <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','reffnameEdit'));catch;end;">Input function TAC file</a>:
 %                   Reference region radioactivity file or blood (plasma)
 %                   input function file. See help for <a href="matlab: help wapi_readref">wapi_readref</a> for
 %                   expected format of reference-region input data. See
@@ -46,19 +46,19 @@ function outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,ou
 %                   to contain the word 'blood' or the extension should be
 %                   '.blo'.
 %
-%       ncoeff      <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','ncoeffEdit'));catch;end;">Length of wavelet filter kernel (# of coeffs)</a>:
+%    ncoeff         <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','ncoeffEdit'));catch;end;">Length of wavelet filter kernel (# of coeffs)</a>:
 %                   Number of coefficients of Battle-Lemarie wavelet
 %                   filters (it should be a positive even number in the
 %                   range of 4 and 128). Typical value for HRRT PET data is
 %                   16.
 %
-%       depth       <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','depthEdit'));catch;end;">Depth of wavelet decomposition</a>:
+%    depth          <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','depthEdit'));catch;end;">Depth of wavelet decomposition</a>:
 %                   Number of decomposition levels to calculate. Value
 %                   should be in the range of 1 and 8 although above 5 it
 %                   appears impractical. Recommended value for HRRT PET
 %                   data is 3.
 %
-%       stationary  <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','stationaryCheckbox'));catch;end;">Stationary (non-dyadic) wavelet transform</a>:
+%    stationary     <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','stationaryCheckbox'));catch;end;">Stationary (non-dyadic) wavelet transform</a>:
 %                   Flag indicating whether stationary wavelet transform
 %                   (true) or dyadic stransform (false) should be used. The
 %                   stationary wavelet transform (WT) is redundant so at
@@ -90,9 +90,13 @@ function outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,ou
 %                   starting up MATLAB and before using WAPI. There can be
 %                   tremendous gain in processing speed!
 %
-%       numpoints   <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','numpointsEdit'));catch;end;">Number of points fitted on (reference-)Logan plot</a>:
+%    numpoints      <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','numpointsEdit'));catch;end;">Number of points fitted on (reference-)Logan plot</a>:
 %                   Number of last points on the (ref.)Logan plot that are
 %                   fitted to obtain the kinetic parameter (V_T or DVR).
+%
+%    options        An optional matlab structure specifying additional
+%                   parameters. The following fields (options) are
+%                   recognized:
 %
 %       refmaskfile <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','refmaskfileEdit'));catch;end;">3D mask of reference region</a>:
 %                   Optional. 3D-mask with reference region (filename of
@@ -152,9 +156,28 @@ function outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,ou
 %                   they should be 1-256 for x and y and 1-207 for z axes,
 %                   respectively).
 %
+%        targetmaskfile <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','targetmaskfileEdit'));catch;end;">3D mask of target region</a>:
+%                   Optional. Limit the WT to only certain region of the
+%                   image. Voxels outside the target mask will be zeroed
+%                   before the wavelet transform. Useful for suppressing
+%                   artifacts in the parametric image from high
+%                   radioactivity voxels outside the region of interest,
+%                   for example whole brain. Should be the name of a mask
+%                   file specifying voxels to be included in the analysis.
+%
+%        targetmaskpadding <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','targetmaskpaddingEdit'));catch;end;">Padding of target mask</a>:
+%                   Optional. The target mask can be padded, i.e. dilated
+%                   to increase its coverage at its borders. It should be
+%                   the number of voxels to expand the border with.
+%
+%        deleteoutputwd3 <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','deleteoutputwd3Checkbox'));catch;end;">Delete output WT file</a>:
+%                   Optional. If set (checked) then the WT file of the
+%                   calculated parametric image will be deleted (but not
+%                   the actual image file or course :-) ).
+%
 %  Outputs:
 %
-%       outfname    <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','outfnameEdit'));catch;end;">Output 3D parametric image</a>:
+%    outfname       <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','outfnameEdit'));catch;end;">Output 3D parametric image</a>:
 %                   Parametric image is saved in .nii file with this base
 %                   name. The number of coeffs and depth of decomposition,
 %                   and the type of fitting used ('mllog' for multi-linear
@@ -202,10 +225,33 @@ function outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,ou
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     WAPI 1.2 2022-09-27
 
-if nargin<8 || nargin>12
-  error('Number of inputs must be 8 - 12. See help.');
+if nargin<8 || nargin>9
+  error('Number of inputs must be 8 - 9. See help.');
+end
+
+defOptions=struct('refmaskfile',[],'weights',[],'k2ref',[],'lims',[],'targetmaskfile','','targetmaskpadding',1,'deleteoutputwd3',false);
+if nargin>6
+	if ~isstruct(options)
+		error('7th input must be a struct. See help.');
+	end
+	opts=options;
+	options=defOptions;
+	fns=fieldnames(options);
+	for f=1:length(fns)
+		fld=fns{f};
+		if isfield(opts,fld)
+			options.(fld)=opts.(fld);
+		end
+	end
+else
+	options=defOptions;
+end
+fns=fieldnames(options);
+for f=1:length(fns)
+	fld=fns{f};
+	eval(sprintf('%s=options.%s;',fld,fld));
 end
 
 framelimits=[];
@@ -216,17 +262,17 @@ if ischar(numpoints)
     end
 end
 
-if nargin<12
+if isempty(lims) %#ok<NODEF>
     lims=framelimits;
 else
-    if ~isempty(lims) && ischar(lims)
+    if ischar(lims)
         lims=str2num(lims); %#ok<ST2NM>
         if isempty(lims)
             error('lims must be a numeric array');
         end
     end
 end
-if nargin<11 || isempty(k2ref)
+if isempty(k2ref) %#ok<NODEF>
     k2ref=0.0; % 0.1;
 elseif ischar(k2ref)
     k2ref=str2double(k2ref);
@@ -234,15 +280,8 @@ elseif ischar(k2ref)
         error('k2ref must be a number if given');
     end
 end
-if nargin<10
-    weights=[];
-else
-    if ischar(weights) && ~isempty(weights)
-        weights=textread(weights); % it should be a simple file with one weighting value per line
-    end
-end
-if nargin<9
-  refmaskfile=[];
+if ischar(weights) && ~isempty(weights) %#ok<NODEF>
+	weights=textread(weights); %#ok<DTXTRD> % it should be a simple file with one weighting value per line
 end
 plasmainput=0;
 if ischar(reffname)
@@ -259,6 +298,7 @@ if ischar(reffname)
 else
     ref=reffname;
 end
+
 if ischar(ncoeff)
     ncoeff=str2double(ncoeff);
     if isnan(ncoeff)
@@ -278,7 +318,7 @@ hz=[]; %#ok<NASGU>
 if ~ischar(infname)
     error('1st input must be a valid PET filename');
 end
-[inPath,inName]=fileparts(infname);
+[inPath,inName]=fileparts(infname); %#ok<ASGLU>
 invol=wapi_readim(infname, tmsname);
 
 invol.orisize=invol.size(1:3);
@@ -292,6 +332,62 @@ if isempty(weights)
     drawnow
     weights=ones(sz(4),1);
 end
+
+if ~isempty(targetmaskfile) && ischar(targetmaskfile)
+	% a file, load it
+	[~,~,ext]=fileparts(targetmaskfile);
+	switch ext
+		case '.mat' % target mask is in a MATLAB .mat file (should be 1st variable in .mat as a 3D array)
+			str=load(targetmaskfile);
+			nm=fieldnames(str);
+			targetmask=str.(nm{1});
+			if ~isequal(size(targetmask),invol.orisize)
+				error('First variable of target mask .mat file must be of the same size as input image.');
+			end
+		case '.nii'
+			targetmask=wapi_readim_nifti(targetmaskfile);
+			targetmask_mat=targetmask.mat;
+			targetmask=wapi_getframe(targetmask,1);
+			if ~isequal(size(targetmask),invol.orisize)
+				error('Target mask must be of the same array size as input image.');
+			end
+			im2mMat=inv(invol.mat)*targetmask_mat; %#ok<MINV>
+			cosdiff=abs(abs(im2mMat(1:3,1:3))-eye(3));
+			if any(cosdiff(:)>1e-10)
+				error('Voxel layout of target mask must be the same as that of the input image, except for flipping.');
+			end
+			for d=1:3
+				if im2mMat(d,d)<0
+					if im2mMat(d,4)~=invol.orisize(d)+1
+						error('Voxel layout of target mask must be the same as that of the input image, except for flipping.');
+					end
+					targetmask=flip(targetmask,d);
+				elseif im2mMat(d,4)~=0
+					error('Voxel layout of target mask must be the same as that of the input image, except for flipping.');
+				end
+			end
+			targetmask(targetmask<.01)=0;
+			targetmask(targetmask>=.01)=1;
+		otherwise
+			error('Unsupported mask filetype %s',ext);
+	end
+elseif ~isempty(targetmaskfile) && (isnumeric(targetmaskfile) || islogical(targetmaskfile)) % just an array
+	targetmask=targetmaskfile;
+	if ~isequal(size(targetmask),invff.orisize.dim(1:3))
+		error('Target mask must be of the same size as input image.');
+	end
+else
+	targetmask=[];
+end
+if ~isempty(targetmask)
+	targetmask=targetmask>0;
+	if targetmaskpadding>0
+		targetmask=imdilate(targetmask,strel_bol(targetmaskpadding));        % erode voxels at boundary in MR space
+	end
+	fprintf(1,'Will use target mask for calculating wavelet transform.\n');
+	drawnow
+end
+
 if ~isempty(lims)
     switch size(lims,2)
         case 4
@@ -321,13 +417,16 @@ if ~isempty(lims)
     ref=ref(ref(:,1)>=time(lims(1,4))-10*eps & ref(:,1)<=time(lims(2,4))+10*eps,:);
     time=time(lims(1,4):lims(2,4));
     weights=weights(lims(1,4):lims(2,4));
+	if ~isempty(targetmask)
+		targetmask=targetmask(lims(1,1):lims(2,1),lims(1,2):lims(2,2),lims(1,3):lims(2,3),:);
+	end
 end
 
 Z = spm_imatrix(invol.mat);
 asp = Z(7:9); % voxel size
 R = spm_matrix([0 0 0 Z(4:6)]); % rotational components
 R = R(1:3,1:3); % direction cosines
-[v,ipermOrder]=max(abs(R)); % where x,y,z dim appears in input spm image
+[v,ipermOrder]=max(abs(R)); %#ok<ASGLU> % where x,y,z dim appears in input spm image
 if ~isequal(ipermOrder, [1 2 3])
     error('Input PET data must be stored in x-y-z arrays');
 end
@@ -366,11 +465,11 @@ if stationary
     fprintf(1,'Stationary wavelet transform is used.\n');
     drawnow
     if doit
-        wapi_dwt3dyn(invol,wd3name,depth,h,g,hz,gz,1,'limits',lims);
+        wapi_dwt3dyn(invol,wd3name,depth,h,g,hz,gz,1,'limits',lims,'targetmask',targetmask);
     end
 else
     if doit
-        wapi_dwt3dyn(invol,wd3name,depth,h,g,hz,gz,0,'limits',lims);
+        wapi_dwt3dyn(invol,wd3name,depth,h,g,hz,gz,0,'limits',lims,'targetmask',targetmask);
     end
 end
 if doit
@@ -405,7 +504,7 @@ else
     ref(:,1)=time;
 end
 
-[offs,numfr,lc,s]=wapi_readwd3(wd3name);
+[offs,numfr,lc,s]=wapi_readwd3(wd3name); %#ok<ASGLU>
 if ~isempty(lims)
     numfr=sz(4);
 end
@@ -413,14 +512,14 @@ end
 userefmask = 1; % set to zero to quickly disable this part of the code
 if userefmask
     if ~isempty(refmaskfile) && ischar(refmaskfile)
-        [t1,t2,ext]=fileparts(refmaskfile);
+        [~,~,ext]=fileparts(refmaskfile);
         switch ext
             case '.mat' % mask is in a MATLAB .mat file (should be 1st variable in .mat as a 3D array)
                 wd3mask=fullfile(tempdir,[strrep(strrep(strrep(strrep(refmaskfile,'.mat',''),'\','_'),'/','_'),':','') '.wd3']);
                 str=load(refmaskfile);
                 nm=fieldnames(str);
                 refmask.volume=str.(nm{1});
-                if isqeual(size(refmask.volume),invol.orisize)
+                if ~isequal(size(refmask.volume),invol.orisize)
                     error('First variable of mask .mat file must be of the same size as input image.');
                 end
                 if ~isempty(lims)
@@ -428,9 +527,27 @@ if userefmask
                 end
             case '.nii'
                 refmask=wapi_readim_nifti(refmaskfile);
-                wd3mask=fullfile(tempdir,[strrep(strrep(strrep(strrep(refmaskfile,'.nii',''),'\','_'),'/','_'),':','') '.wd3']);
+				wd3mask=fullfile(tempdir,[strrep(strrep(strrep(strrep(refmaskfile,'.nii',''),'\','_'),'/','_'),':','') '.wd3']);
                 refmask.volume=wapi_getframe(refmask,1);
-                refmask.volume(refmask.volume<.01)=0;
+				if ~isequal(size(refmask.volume),invol.orisize)
+					error('Reference mask must be of the same array size as input image.');
+				end
+				im2mMat=inv(invol.mat)*refmask.mat; %#ok<MINV>
+				cosdiff=abs(abs(im2mMat(1:3,1:3))-eye(3));
+				if any(cosdiff(:)>1e-10)
+					error('Voxel layout of reference mask must be the same as that of the input image, except for flipping.');
+				end
+				for d=1:3
+					if im2mMat(d,d)<0
+						if im2mMat(d,4)~=invol.orisize(d)+1
+							error('Voxel layout of reference mask must be the same as that of the input image, except for flipping.');
+						end
+						refmask.volume=flip(refmask.volume,d);
+					elseif im2mMat(d,4)~=0
+						error('Voxel layout of reference mask must be the same as that of the input image, except for flipping.');
+					end
+				end
+				refmask.volume(refmask.volume<.01)=0;
                 refmask.volume(refmask.volume>=.01)=1;
                 if ~isempty(lims)
                     refmask.volume=refmask.volume(lims(1,1):lims(2,1),lims(1,2):lims(2,2),lims(1,3):lims(2,3),:);
@@ -442,9 +559,9 @@ if userefmask
         mg=g;
         disp('Creating reference mask in wavelet space.');
         if stationary
-            [cm,sm]=wapi_wavedec3st(refmask.volume,depth,mh,mg,hz,gz,'st','save',wd3mask); %#ok<NASGU>
+            [cm,sm]=wapi_wavedec3st(refmask.volume,depth,mh,mg,hz,gz,'st','save',wd3mask);  %#ok<ASGLU>
         else
-            [cm,sm]=wapi_wavedec3st(refmask.volume,depth,mh,mg,hz,gz,'save',wd3mask); %#ok<NASGU>
+            [cm,sm]=wapi_wavedec3st(refmask.volume,depth,mh,mg,hz,gz,'save',wd3mask);  %#ok<ASGLU>
         end
         clear sm refmask
     else
@@ -458,9 +575,9 @@ if userefmask
             end
             disp('Creating reference mask in wavelet space.');
             if stationary
-                [cm,sm]=wapi_wavedec3st(refmask,depth,mh,mg,hz,gz,'st','save',wd3mask); %#ok<NASGU>
+                [cm,sm]=wapi_wavedec3st(refmask,depth,mh,mg,hz,gz,'st','save',wd3mask);  %#ok<ASGLU>
             else
-                [cm,sm]=wapi_wavedec3st(refmask,depth,mh,mg,hz,gz,'save',wd3mask); %#ok<NASGU>
+                [cm,sm]=wapi_wavedec3st(refmask,depth,mh,mg,hz,gz,'save',wd3mask);  %#ok<ASGLU>
             end
             clear sm
         else
@@ -513,7 +630,7 @@ for lev=1:depth
                 auc(1,f:l)=trapz(petTime,d);
                 clear d
             end
-            aucthr=mean(abs(auc(refmaskidx))) .* (wapi_defaults('aucThresholdPercent')/100);%#ok<FNDSB> % aucthr=0;
+            aucthr=mean(abs(auc(refmaskidx))) .* (wapi_defaults('aucThresholdPercent')/100); % aucthr=0;
             clear refmaskidx
             clear auc
         else
@@ -538,7 +655,7 @@ for lev=1:depth
                 D=d;
             end
             clear d
-            [tmp,tmp2]=piw_mlinlogan(D,timeL,inputL,numpoints,weights,0,k2ref,aucthr); %#ok<BDSCI> % weights:ones, k2 reference: 0.1
+            [tmp,tmp2]=piw_mlinlogan(D,timeL,inputL,numpoints,weights,0,k2ref,aucthr); % weights:ones, k2 reference: 0.1
             par=[tmp2;tmp];
             clear tmp tmp2
             drawnow;
@@ -547,7 +664,7 @@ for lev=1:depth
                 numP=size(par,1)-1;
 
                 for i=1:numP
-                    Wfname{i}=strcat(outfname(1:odp-1),num2str(ncoeff),'-',num2str(depth),'_mllog_p',num2str(i),'.wd3'); %#ok<AGROW>
+                    Wfname{i}=strcat(outfname(1:odp-1),num2str(ncoeff),'-',num2str(depth),'_mllog_p',num2str(i),'.wd3'); 
                     saveparwav(Wfname{i},lc,s);
                     wapi_extendFile([Wfname{i} '1'],lc*8);
                 end
@@ -602,7 +719,7 @@ for lev=1:depth
 end
 fprintf(1,'Approximation...');
 drawnow
-[first,last]=wapi_idxcoef3('app',s,1); %#ok<NASGU>
+[first,last]=wapi_idxcoef3('app',s,1);  %#ok<ASGLU>
 % d=readwd3(wd3name,'app',1,numfr);
 aucthr=10;%eps;
 for p=chunks:-1:1
@@ -622,7 +739,7 @@ for p=chunks:-1:1
         D=d;
     end
     clear d
-    [tmp,tmp2]=piw_mlinlogan(D,timeL,inputL,numpoints,weights,0,k2ref,aucthr); %#ok<BDSCI> % weights:ones, k2 reference: 0.1
+    [tmp,tmp2]=piw_mlinlogan(D,timeL,inputL,numpoints,weights,0,k2ref,aucthr); % weights:ones, k2 reference: 0.1
     par=[tmp2;tmp];
     clear tmp tmp2
     clear D
@@ -715,6 +832,15 @@ if userefmask
 end
 fprintf(1,'done\n');
 drawnow
+if deleteoutputwd3
+	fprintf(1,'Deleting wavelet transform files of output(s)!...');
+	drawnow
+	for p=1:numP
+	  delete([Wfname{p} '*']);
+	end
+	fprintf(1,'done\n');
+	drawnow
+end
 
 return;
 
@@ -757,8 +883,32 @@ fclose(fid);
 function D=unpack_wd3(d,f,l) %#ok<DEFNU>
 
 for fr=length(d):-1:1
-    D(fr,:)=d{fr}(1,f:l); %#ok<AGROW>
+    D(fr,:)=d{fr}(1,f:l); 
     if(any(isnan(D(fr,:))))
-        warning('NaNs detected in coefficients (frame %d)!!',fr); %#ok<WNTAG,SPWRN>
+        warning('NaNs detected in coefficients (frame %d)!!',fr); %#ok<WNTAG>
     end
 end
+
+function se = strel_bol(r)
+
+% From SPM 12
+% STREL_BOL constructs a 3D sphere with the specified radius
+% that can be used as structural element in 3D image processing
+%
+% See STREL, IMERODE, IMDILATE (image processing toolbox)
+
+dim = [2*r+1, 2*r+1, 2*r+1];
+se  = zeros(dim);
+for i=1:dim(1)
+  for j=1:dim(2)
+    for k=1:dim(3)
+      x = i-1-r;
+      y = j-1-r;
+      z = k-1-r;
+      if norm([x y z])<=r
+        se(i,j,k) = 1;
+      end
+    end
+  end
+end
+

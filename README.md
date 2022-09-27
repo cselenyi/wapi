@@ -6,9 +6,9 @@ Welcome to the WAPI MATLAB Toolbox!
 
 Requirements:
 -------------
-MATLAB (R2014b the latest tested but may work with newer versions)
-Image toolbox (probably needed)
-SPM5 toolbox (or later)
+- MATLAB (R2014b is the latest tested version but may work with newer versions)
+- Image toolbox (probably needed)
+- SPM5 toolbox (or later)
 
 Installation:
 -------------
@@ -31,9 +31,9 @@ or:
 License:
 --------
 Yes, there is one (and some), look at:
-LICENSE                        (for WAPI proper functions)
-piw_licence.man                (for the PIWAVE helper functions)
-uvi_lemarie.m                  (summary for Uvi_Wave helper function, 
+- *LICENSE*                        (for WAPI proper functions)
+- *piw_licence.man*                (for the PIWAVE helper functions)
+- *uvi_lemarie.m*                  (summary for Uvi_Wave helper function, 
                                otherwise it has the same license as PIWAVE, 
 							   i.e. GPL 2.0 or later).
 

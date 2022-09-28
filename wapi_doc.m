@@ -36,6 +36,7 @@ function wapi_doc
 % <a href="matlab: doc wapi_wt_trsize">wapi_wt_trsize</a>         Size of wavelet filtered data
 % <a href="matlab: doc wapi_readim">wapi_readim</a>            Read 3D/4D (PET) image info.
 % <a href="matlab: doc wapi_readim_nifti">wapi_readim_nifti</a>      Read 3D/4D NIfTI-1 image info
+% <a href="matlab: help wapi_struct2str">wapi_struct2str</a>      Convert MATLAB structure to string representation
 
 % Output:
 %   3rd party uility functions used by WAPI toolbox:
@@ -74,6 +75,7 @@ function wapi_doc
 %   wapi_wt_trsize         Size of wavelet filtered data
 %   wapi_readim            Read 3D/4D (PET) image info.
 %   wapi_readim_nifti      Read 3D/4D NIfTI-1 image info
+%   wapi_struct2str        Convert MATLAB structure to string representation
 
 %
 %     Copyright (C) 2022 by Zsolt Cselényi
@@ -96,6 +98,6 @@ function wapi_doc
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     Version 2022-04-14
+%     Version 2022-08-28
 
 doc('wapi_doc');

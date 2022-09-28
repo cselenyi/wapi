@@ -28,7 +28,7 @@ function varargout = wapi_gui(varargin)
 %     Author: Zsolt Cselnyi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     Version 2022-08-27
+%     Version 2022-08-28
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -199,6 +199,12 @@ function calculate_Callback(hObject, eventdata, handles)
 % hObject    handle to calculate (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+doProcess(hObject, eventdata, handles, false);
+
+function doProcess(hObject, eventdata, handles, compileOnly)
+if nargin<4
+	compileOnly=false;
+end
 infname=get(handles.infnameEdit,'String');
 [pathname,n,ext]=fileparts(infname);
 if ~exist(infname,'file')
@@ -262,26 +268,35 @@ end
 deleteoutputwd3=get(handles.deleteoutputwd3Checkbox,'Value')>0;
 opts=struct('refmaskfile',refmaskfile,'weights',weights,'k2ref',k2ref,'lims',lims,'targetmaskfile',targetmaskfile,'targetmaskpadding',targetmaskpadding,'deleteoutputwd3',deleteoutputwd3);
 
-try
-    set(handles.calculate,'Enable','off');
-    tic;
-    outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,outfname,numpoints,opts);
-    t=toc;
-catch E
-    set(handles.calculate,'Enable','on');
-    rethrow(E);
+if compileOnly
+	try
+		cmd=sprintf('outfnames=wapi_wapi(''%s'',''%s'',''%s'',%d,%d,%d,''%s'',%d,%s);',infname,tmsname,reffname,ncoeff,depth,stationary,outfname,numpoints,wapi_struct2str(opts,0));
+	catch E
+		rethrow(E);
+	end
+	clipboard('copy',cmd);
+	msgbox(sprintf('WAPI command was successfully compiled and copied to the clipboard'), 'WAPI','modal');
+else
+	try
+		set(handles.calculate,'Enable','off');
+		tic;
+		outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,outfname,numpoints,opts);
+		t=toc;
+	catch E
+		set(handles.calculate,'Enable','on');
+		rethrow(E);
+	end
+	set(handles.calculate,'Enable','on');
+
+	hrs=floor(t/60/60);
+	trem=t-hrs*60*60;
+	mins=floor(trem/60);
+	trem=trem-mins*60;
+	secs=trem;
+
+	msgbox(sprintf('WAPI successfully finished!\n\nResults saved to:\n%s\nCalculations took:\n%d:%d:%0.3f (%d sec)', ...
+		sprintf('%s\n',outfnames{:}), hrs, mins, secs, round(t)), 'WAPI','modal');
 end
-set(handles.calculate,'Enable','on');
-
-hrs=floor(t/60/60);
-trem=t-hrs*60*60;
-mins=floor(trem/60);
-trem=trem-mins*60;
-secs=trem;
-
-msgbox(sprintf('WAPI successfully finished!\n\nResults saved to:\n%s\nCalculations took:\n%d:%d:%0.3f (%d sec)', ...
-    sprintf('%s\n',outfnames{:}), hrs, mins, secs, round(t)), 'WAPI','modal');
-
 
 % --- Executes on button press in reset.
 function reset_Callback(hObject, eventdata, handles)
@@ -462,7 +477,6 @@ function k2refEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
 
 
 function limsEdit_Callback(hObject, eventdata, handles)
@@ -882,9 +896,6 @@ function helpButton_Callback(hObject, eventdata, handles)
 doc wapi_wapi
 
 
-
-
-
 function targetmaskfileEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to targetmaskfileEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -981,3 +992,11 @@ function deleteoutputwd3Checkbox_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to deleteoutputwd3Checkbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes on button press in compile.
+function compile_Callback(hObject, eventdata, handles)
+% hObject    handle to compile (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+doProcess(hObject, eventdata, handles, true);

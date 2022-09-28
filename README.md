@@ -59,4 +59,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Author: Zsolt Cselényi
 e-mail: zsolt.cselenyi@ki.se
 
-WAPI 1.1 2022-04-14
+Last code edit 2022-08-28

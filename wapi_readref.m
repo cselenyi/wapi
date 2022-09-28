@@ -39,9 +39,9 @@ function ref=wapi_readref(refin)
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-04-14
 
 
-ref=textread(refin,'%f','headerlines',0,'delimiter','\t');
+ref=textread(refin,'%f','headerlines',0,'delimiter','\t'); %#ok<DTXTRD>
 
 return;

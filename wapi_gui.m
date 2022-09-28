@@ -28,7 +28,7 @@ function varargout = wapi_gui(varargin)
 %     Author: Zsolt Cselnyi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-08-27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;

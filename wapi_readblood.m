@@ -41,7 +41,7 @@ function blo=wapi_readblood(filename,timeunits)
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-04-14
 
 if nargin<2
     timeunits='min';
@@ -55,7 +55,7 @@ switch timeunits
         factor=1/60;
 end
 
-[bloodtime,blood,plasma]=textread(filename,'%f%f%f','headerlines',1,'delimiter','\t');
+[bloodtime,blood,plasma]=textread(filename,'%f%f%f','headerlines',1,'delimiter','\t'); %#ok<DTXTRD>
 
 blood(blood<0)=0;
 plasma(plasma<0)=0;

@@ -42,17 +42,17 @@ function outIF=wapi_matchIF2Frames(IF, time)
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-08-28
 
 inT=IF(:,1);
 inV=IF(:,2);
 
 outT=time;
 
-[mx,idx]=max(inV);
+[~,idx]=max(inV);
 
 if inT(idx)<outT(1)
-    warning('Time of input function peak is before first frame-time to match!\nPeak will be ignored.'); %#ok<WNTAG>
+    warning(sprintf('Time of input function peak is before first frame-time to match!\nPeak will be ignored.')); %#ok<SPWRN,WNTAG>
 else
     outT=[outT(outT<inT(idx)); inT(idx); outT(outT>inT(idx))];
 end

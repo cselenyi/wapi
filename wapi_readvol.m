@@ -40,7 +40,7 @@ function [vol,cnt]=wapi_readvol(fname,endi)
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-04-14
 
 if nargin<2
     endi='l';

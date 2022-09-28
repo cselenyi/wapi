@@ -107,7 +107,7 @@ function [c,s] = wapi_wavedec3st(x,n,varargin)
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-04-14
 
 if ~any((3:9)==nargin)
     error('Wrong number of inputs');
@@ -130,7 +130,7 @@ for i=1:length(varargin)
         if isnumeric(fname)
             error('You must specify a filename');
         else
-            [pth,nm,e]=fileparts(fname);
+            [~,~,e]=fileparts(fname);
             if strcmp(e,'.wd3')
                 saveWD3=1;
                 fname2=[fname '1'];
@@ -193,7 +193,7 @@ if anisotrop_filter
     filterlen(3)=length(LoF_D2);
 end
 for i=1:n
-    s=[wapi_wt_trsize(s(1,:), filterlen, dwt_st);s]; %#ok<AGROW>
+    s=[wapi_wt_trsize(s(1,:), filterlen, dwt_st);s]; 
 end
 s=s([1 1:end],:);
 
@@ -206,7 +206,7 @@ if saveWD3
     fwrite(fid0,1,'double');
 end
 if fid
-    [f,lc]=wapi_idxcoef3('c',s,1);
+    [~,lc]=wapi_idxcoef3('c',s,1);
     wapi_extendFile(fname2,lc*8);
     fid=fopen(fname2,'r+','l');
 end
@@ -244,7 +244,7 @@ for i=1:n
     if fid
         f=wapi_idxcoef3('c',s,i);
         fseek(fid,fpos0+(f-1)*8,-1);
-        c(i)=0;
+        c(i)=0; %#ok<*AGROW>
         for b=2:8
             c(i)=c(i)+fwrite(fid,xd{b},'double');
         end
@@ -255,10 +255,10 @@ for i=1:n
         x = xd{1};
         xd{1}=[];
         if splitc
-            c{i}=xd;
+            c{i}=xd; %#ok<UNRCH>
         else
             for j=8:-1:2
-                c=[xd{j}(:)' c]; %#ok<AGROW> % store details
+                c=[xd{j}(:)' c]; % store details
             end
         end
     end
@@ -282,7 +282,7 @@ if fid
     end        
 else
     if splitc
-        c{i+1}=x;
+        c{i+1}=x; %#ok<UNRCH>
     else
         c = [x(:)' c];
     end

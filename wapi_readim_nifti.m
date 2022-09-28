@@ -54,7 +54,7 @@ function imvol=wapi_readim_nifti( niiname, tmsname )
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-04-14
 
 % imvol.filename
 % imvol.type
@@ -76,7 +76,7 @@ end
 imvol.mat=N.mat;
 
 if nargin>1 && ~isempty(tmsname)
-    tms=textread(tmsname);
+    tms=textread(tmsname); %#ok<DTXTRD>
     switch size(tms,2)
         case 1 % only frame centers provided
             dr=diff([0;tms]);

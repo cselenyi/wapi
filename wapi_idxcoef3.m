@@ -53,7 +53,7 @@ function [first,last] = wapi_idxcoef3(o,s,n)
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-04-14
 
 if ~any((3:4)==nargin)
     error('Wrong number of inputs');

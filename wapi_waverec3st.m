@@ -62,7 +62,7 @@ function a = wapi_waverec3st(wd3Fname,s,varargin)
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-04-14
 
 if ~any((3:7)==nargin)
     error('Wrong number of inputs');
@@ -72,9 +72,9 @@ if ~any((0:1)==nargout)
 end
 
 if isempty(s)
-    [offs,numfr,lc,s]=wapi_readwd3(wd3Fname);
+    [offs,numfr,lc,s]=wapi_readwd3(wd3Fname); %#ok<*ASGLU>
 else
-    lc=sum(prod([s(1:end-1,:) [1;repmat(7,size(s,1)-2,1)]],2));
+    lc=sum(prod([s(1:end-1,:) [1;repmat(7,size(s,1)-2,1)]],2)); %#ok<NASGU>
 end
 
 rmax = size(s,1);
@@ -239,7 +239,7 @@ for p=nmax:-1:n+1
                 a(offsetArr:offsetArr+fillLength-1)=wd3Fname(fst:lst);
             end
         else
-            sz=[s(end-p,:) 7];
+            sz=[s(end-p,:) 7]; %#ok<UNRCH>
             if ischar(wd3Fname)
                 tmp=reshape(wapi_readwd3(wd3Fname,fst,lst,1),sz);
             else

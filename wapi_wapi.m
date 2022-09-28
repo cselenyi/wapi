@@ -17,7 +17,7 @@ function outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,ou
 % retained (this file is created in the same folder as the output
 % parametric image).
 %
-% Version 1.2 - 2022-09-27
+% Version 2022-09-28
 %
 % Usage:
 % wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,outfname, ...
@@ -333,6 +333,15 @@ if isempty(weights)
     weights=ones(sz(4),1);
 end
 
+Z = spm_imatrix(invol.mat);
+asp = Z(7:9); % voxel size
+R = spm_matrix([0 0 0 Z(4:6)]); % rotational components
+R = R(1:3,1:3); % direction cosines
+[v,ipermOrder]=max(abs(R)); %#ok<ASGLU> % where x,y,z dim appears in input spm image
+if ~isequal(ipermOrder, [1 2 3])
+    error('Input PET data must be stored in x-y-z arrays');
+end
+
 if ~isempty(targetmaskfile) && ischar(targetmaskfile)
 	% a file, load it
 	[~,~,ext]=fileparts(targetmaskfile);
@@ -420,15 +429,6 @@ if ~isempty(lims)
 	if ~isempty(targetmask)
 		targetmask=targetmask(lims(1,1):lims(2,1),lims(1,2):lims(2,2),lims(1,3):lims(2,3),:);
 	end
-end
-
-Z = spm_imatrix(invol.mat);
-asp = Z(7:9); % voxel size
-R = spm_matrix([0 0 0 Z(4:6)]); % rotational components
-R = R(1:3,1:3); % direction cosines
-[v,ipermOrder]=max(abs(R)); %#ok<ASGLU> % where x,y,z dim appears in input spm image
-if ~isequal(ipermOrder, [1 2 3])
-    error('Input PET data must be stored in x-y-z arrays');
 end
 
 factor=asp(1) / asp(3);
@@ -833,7 +833,9 @@ end
 fprintf(1,'done\n');
 drawnow
 if deleteoutputwd3
-	fprintf(1,'Deleting wavelet transform files of output(s)!...');
+	sstr={'','s'};
+	sstr=sstr{double(numP>1)+1};
+	fprintf(1,'Deleting wavelet transform file%s of output%s!...', sstr, sstr);
 	drawnow
 	for p=1:numP
 	  delete([Wfname{p} '*']);

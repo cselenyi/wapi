@@ -40,7 +40,7 @@ function voldat=wapi_getframe(petvol, fr)
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-04-14
 
 switch petvol.type
     case 'nii'

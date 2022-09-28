@@ -96,6 +96,6 @@ function wapi_doc
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-04-14
 
 doc('wapi_doc');

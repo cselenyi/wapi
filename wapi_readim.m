@@ -48,7 +48,7 @@ function out=wapi_readim(infname, tmsname)
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-08-28
 
 persistent formats
 
@@ -73,7 +73,7 @@ if ~nargin
 end
 
 exts=fieldnames(formats);
-[inPath,inName,inExt]=fileparts(infname);
+[~,~,inExt]=fileparts(infname);
 inExt(1)=[];
 if ~any(strcmpi(exts, inExt))
     error('Cannot handle PET images of type .%s', inExt);

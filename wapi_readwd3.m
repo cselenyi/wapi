@@ -86,7 +86,7 @@ function [offs,numfr,clen,s]=wapi_readwd3(fname,map,level,lastframe)
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-04-14
 
 if nargin<2
   map=[];
@@ -130,7 +130,7 @@ if ~isempty(map)
                 warning('Incorrect frame number in file: ''%s''.', strcat(fname,num2str(fr))); %#ok<WNTAG>
             end
             fseek(fid2,(first-1).*8,0);
-            readwd3_d{fr}(1,:) = fread(fid2,last-first+1,'double')'; %#ok<AGROW>
+            readwd3_d{fr}(1,:) = fread(fid2,last-first+1,'double')'; 
             fclose(fid2);
         end
         offs=readwd3_d;
@@ -140,7 +140,7 @@ if ~isempty(map)
             first=map;
             last=level;
             if numfr>1
-                readwd3_d=zeros(numfr,last-first+1); %#ok<AGROW>
+                readwd3_d=zeros(numfr,last-first+1); 
             end
             for fr=1:numfr
                 fid2=fopen(strcat(fname,num2str(fr)),'r','l');
@@ -149,7 +149,7 @@ if ~isempty(map)
                     warning('Incorrect frame number in file: ''%s''.', strcat(fname,num2str(fr))); %#ok<WNTAG>
                 end
                 fseek(fid2,(first-1).*8,0);
-                readwd3_d(fr,:) = fread(fid2,last-first+1,'double')'; %#ok<AGROW>
+                readwd3_d(fr,:) = fread(fid2,last-first+1,'double')'; 
                 fclose(fid2);
             end
             offs=readwd3_d;

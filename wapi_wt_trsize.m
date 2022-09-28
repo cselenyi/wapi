@@ -44,7 +44,7 @@ function trsize=wapi_wt_trsize(dimsize, filterlen, st)
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-04-14
 
 if st
     trsize=dimsize;

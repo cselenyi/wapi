@@ -37,7 +37,7 @@ function wapi_writevol(fname,vol)
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.1 2022-04-14
+%     Version 2022-04-14
 
 fid=fopen(fname,'w','l');
 if(fid<1)

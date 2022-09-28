@@ -7,7 +7,7 @@ Welcome to the WAPI MATLAB Toolbox!
 Requirements:
 -------------
 - MATLAB (R2014b is the latest tested version but may work with newer versions)
-- Image toolbox (probably needed)
+- Image toolbox (needed for target mask padding, etc.)
 - SPM5 toolbox (or later)
 
 Installation:
@@ -37,7 +37,7 @@ Yes, there is one (and some), look at:
                                otherwise it has the same license as PIWAVE, 
 							   i.e. GPL 2.0 or later).
 
-==============================================================================
+===========================================================================
 
 Copyright (C) 2022 by Zsolt Cselényi
 

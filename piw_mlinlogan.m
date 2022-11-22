@@ -4,7 +4,7 @@ function [B,Bstd] = piw_mlinlogan(V,time,ifunc,nframes,w,linreg,k2r, aucthr)
 % [B,Bstd] = piw_mlinlogan(V,time,ifunc,nframes,w,[linreg],[k2r],[aucthr])
 %
 % Calculates linear or multi-linear (reference-)Logan fit. It uses fast
-% multithreaded code (wapi_mlinlogan_mex) for performing the calculations.
+% multithreaded code (piw_mlinlogan_mex) for performing the calculations.
 %
 % Inputs:
 %
@@ -43,7 +43,7 @@ function [B,Bstd] = piw_mlinlogan(V,time,ifunc,nframes,w,linreg,k2r, aucthr)
 % piw_mlinlogan:
 %
 % Based on PIW_LOGAN from PIWAVE package.
-% Modifed by Zsolt Cselényi. 2022-04-14
+% Modifed by Zsolt Cselényi. 2022-11-04
 %
 % piw_mlinlogan_mex:
 % Derived from PIW_LOGAN from PIWAVE package.

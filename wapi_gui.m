@@ -8,7 +8,7 @@ function varargout = wapi_gui(varargin)
 % See also: WAPI_WAPI
 
 %
-%     Copyright (C) 2022 by Zsolt Cselnyi
+%     Copyright (C) 2022 by Zsolt Cselényi
 %
 %     The WAPI toolbox (collection of functions listed under the heading
 %     "Proper WAPI toolbox functions (toolbox manifest)" in wapi_help.m
@@ -25,10 +25,10 @@ function varargout = wapi_gui(varargin)
 %     You should have received a copy of the GNU General Public License
 %     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %
-%     Author: Zsolt Cselnyi
+%     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     Version 2022-08-28
+%     Version 2022-11-04
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -240,6 +240,8 @@ if isempty(outfname)
     errordlg(sprintf('%s missing required argument',get(handles.outfnameLabel,'String')),'WAPI','modal');
     return;
 end
+methods={'mllog','pat'};
+method=methods{get(handles.methodPopup,'Value')};
 refmaskfile=get(handles.refmaskfileEdit,'String');
 if ~isempty(refmaskfile) && ~exist(refmaskfile,'file')
     errordlg(sprintf('%s optional argument points to missing file',get(handles.refmaskfileLabel,'String')),'WAPI','modal');
@@ -266,7 +268,7 @@ if isnan(targetmaskpadding)
     targetmaskpadding=0;
 end
 deleteoutputwd3=get(handles.deleteoutputwd3Checkbox,'Value')>0;
-opts=struct('refmaskfile',refmaskfile,'weights',weights,'k2ref',k2ref,'lims',lims,'targetmaskfile',targetmaskfile,'targetmaskpadding',targetmaskpadding,'deleteoutputwd3',deleteoutputwd3);
+opts=struct('method',method,'refmaskfile',refmaskfile,'weights',weights,'k2ref',k2ref,'lims',lims,'targetmaskfile',targetmaskfile,'targetmaskpadding',targetmaskpadding,'deleteoutputwd3',deleteoutputwd3);
 
 if compileOnly
 	try
@@ -1000,3 +1002,26 @@ function compile_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 doProcess(hObject, eventdata, handles, true);
+
+
+% --- Executes on selection change in methodPopup.
+function methodPopup_Callback(hObject, eventdata, handles)
+% hObject    handle to methodPopup (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns methodPopup contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from methodPopup
+
+
+% --- Executes during object creation, after setting all properties.
+function methodPopup_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to methodPopup (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

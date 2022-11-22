@@ -3,6 +3,8 @@ function wapi_doc
 % 3rd party uility functions used by WAPI toolbox:
 % <a href="matlab: doc piw_mlinlogan">piw_mlinlogan</a>          Multi-linear (reference-)Logan plot (PIWAVE 3.1)
 % <a href="matlab: doc piw_mlinlogan">piw_mlinlogan_mex</a>      Multi-linear Logan computational core (PIWAVE 3.1)
+% <a href="matlab: doc piw_patlak">piw_patlak</a>             Patlak plot (PIWAVE 3.1)
+% <a href="matlab: doc piw_patlak">piw_patlak_mex</a>         Patlak (PIWAVE 3.1)
 % <a href="matlab: doc uvi_lemarie">uvi_lemarie</a>            Get quadrature filters given by Battle and Lemarie (Uvi_Wave.300)
 %
 % Proper WAPI toolbox functions (toolbox manifest):
@@ -42,6 +44,8 @@ function wapi_doc
 %   3rd party uility functions used by WAPI toolbox:
 %   piw_mlinlogan          Multi-linear (reference-)Logan plot (PIWAVE 3.1)
 %   piw_mlinlogan_mex      Multi-linear Logan computational core (PIWAVE 3.1)
+%   piw_patlak             Multi-linear (reference-)Logan plot (PIWAVE 3.1)
+%   piw_patlak_mex         Multi-linear Logan computational core (PIWAVE 3.1)
 %   uvi_lemarie            Get quadrature filters given by Battle and Lemarie (Uvi_Wave.300)
 %  
 %   Proper WAPI toolbox functions (toolbox manifest):
@@ -98,6 +102,6 @@ function wapi_doc
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     Version 2022-08-28
+%     Version 2022-11-04
 
 doc('wapi_doc');

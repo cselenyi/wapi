@@ -2,20 +2,22 @@ function outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,ou
 %wapi_wapi              Wavelet Aided Parametric Imaging (WAPI)
 %
 % Wavelet estimation of dynamic (4D) PET images using 3D wavelet analysis
-% and Logan's plot (using either reference region or plasma input
-% function). The decomposition is done using Battle-Lemarie wavelet
-% filters.
-%   The input 4D PET image is assumed to be decay-corrected. Multi-linear
-% (reference-)Logan fit is used to calculate a parametric image of Total
-% distribution volume (V_T) or Distibution Volume Ratio (DVR) depending on
-% the input function used.
+% and graphical analysis (multi-linear Logan plot, or Patlak plot using
+% either reference region or plasma input function). The decomposition is
+% done using Battle-Lemarie wavelet filters.
+%   The input 4D PET image is assumed to be decay-corrected. If
+% multi-linear (reference-)Logan fit is used then it calculates a
+% parametric image of Total distribution volume (V_T) or Distibution Volume
+% Ratio (DVR) depending on the input function used. If Patlak fit is used
+% then it produces an image of the Patlak slope and the intercept,
+% respectively.
 %   The wavelet transform (WT) data of the original PET image (and of the
 % reference mask if it is used) is deleted after the WAPI processing is
 % finished (these are created in the temporary directory). However, the WT
 % of the parametric image itself (as well as the WT of the standard
-% deviation of the Logan fit, which is not inverted back to image space) is
-% retained (this file is created in the same folder as the output
-% parametric image).
+% deviation of the Logan/Patlak fit, which is not inverted back to image
+% space) is retained (this file is created in the same folder as the output
+% parametric image(s)).
 %
 % Version 2022-09-28
 %
@@ -90,13 +92,18 @@ function outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,ou
 %                   starting up MATLAB and before using WAPI. There can be
 %                   tremendous gain in processing speed!
 %
-%    numpoints      <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','numpointsEdit'));catch;end;">Number of points fitted on (reference-)Logan plot</a>:
-%                   Number of last points on the (ref.)Logan plot that are
-%                   fitted to obtain the kinetic parameter (V_T or DVR).
+%    numpoints      <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','numpointsEdit'));catch;end;">Number of points fitted on graphical plot</a>:
+%                   Number of last points on the graphical plot that are
+%                   fitted to obtain the kinetic parameter (V_T, DVR, Ki).
 %
 %    options        An optional matlab structure specifying additional
 %                   parameters. The following fields (options) are
 %                   recognized:
+%
+%       method      <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','methodPopup'));catch;end;">Method</a>:
+%                   Optional. The kinetic analysis to be performed. Valid
+%                   choices are: mllog for multi-linear Logan and pat for
+%                   Patlak. Default is mllog.
 %
 %       refmaskfile <a href="matlab: try;wapi_gui;uicontrol(findobj('Tag','refmaskfileEdit'));catch;end;">3D mask of reference region</a>:
 %                   Optional. 3D-mask with reference region (filename of
@@ -123,7 +130,7 @@ function outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,ou
 %                     reference-region coefficients.
 %                     5. The threshold value is 1% of the mean value. Any
 %                     coefficient that has a lower absolute AUC than the
-%                     threshold is excluded from the Logan fit and the
+%                     threshold is excluded from the graphical fit and the
 %                     output parameter is set to 0.
 %                     If the reference mask is not provided (which is
 %                   always the case if plasma input is used) then no
@@ -181,7 +188,7 @@ function outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,ou
 %                   Parametric image is saved in .nii file with this base
 %                   name. The number of coeffs and depth of decomposition,
 %                   and the type of fitting used ('mllog' for multi-linear
-%                   Logan) is inserted into the filename. 
+%                   Logan, 'pat' for Patlak) is inserted into the filename. 
 %                     E.g.: dymmy_wapi.nii will become:
 %                   dummy_wapi16-3_mllog.nii with a wavelet transform with
 %                   kernel length of 16 and decomposition depth of 3, and 
@@ -225,13 +232,13 @@ function outfnames=wapi_wapi(infname,tmsname,reffname,ncoeff,depth,stationary,ou
 %     Author: Zsolt Cselényi
 %     e-mail: zsolt.cselenyi@ki.se
 %
-%     WAPI 1.2 2022-09-27
+%     WAPI 2022-11-04
 
 if nargin<8 || nargin>9
   error('Number of inputs must be 8 - 9. See help.');
 end
 
-defOptions=struct('refmaskfile',[],'weights',[],'k2ref',[],'lims',[],'targetmaskfile','','targetmaskpadding',1,'deleteoutputwd3',false);
+defOptions=struct('method','mllog','refmaskfile',[],'weights',[],'k2ref',[],'lims',[],'targetmaskfile','','targetmaskpadding',1,'deleteoutputwd3',false);
 if nargin>6
 	if ~isstruct(options)
 		error('7th input must be a struct. See help.');
@@ -260,6 +267,12 @@ if ischar(numpoints)
     if isempty(numpoints)
         error('numpoints must be a scalar or vector!');
     end
+end
+
+if ~ischar(method) || ~ismember(lower(method),{'mllog','pat'}) %#ok<NODEF>
+	error('method must be ''mllog'' or ''pat''');
+else
+	method=lower(method);
 end
 
 if isempty(lims) %#ok<NODEF>
@@ -292,11 +305,23 @@ if ischar(reffname)
     else
         ref=wapi_readref(reffname);
     end
-    if plasmainput
-        disp('Plasma input function detected. Output will be V_T.');
-    end
 else
     ref=reffname;
+end
+if plasmainput
+	switch method
+		case 'mllog'
+			disp('Plasma input function detected. Output will be V_T.');
+		case 'pat'
+			disp('Plasma input function detected. Output will be Ki.');
+	end
+else
+	switch method
+		case 'mllog'
+			disp('Reference input function detected. Output will be DVR.');
+		case 'pat'
+			disp('Reference input function detected. Output will be KiR.');
+	end
 end
 
 if ischar(ncoeff)
@@ -591,9 +616,14 @@ end % if userefmask==1
 fprintf(1,'Kinetic Analysis:\n');
 drawnow
 
-timeL=time.*60; % seconds
-inputL=[ref(:,1)*60 ref(:,2)];
-
+switch method
+	case 'mllog'
+		timeL=time.*60; % seconds
+		inputL=[ref(:,1)*60 ref(:,2)];
+	case 'pat'
+		timeP=time; % minutes
+		inputP=[ref(:,1) ref(:,2)]; % minutes
+end		
 plus=1; %#ok<NASGU>
 
 cnames={'h_l' , 'v_l' , 'd_l' , 'a_h' , 'h_h' , 'v_h' , 'd_h'  };
@@ -655,20 +685,27 @@ for lev=1:depth
                 D=d;
             end
             clear d
-            [tmp,tmp2]=piw_mlinlogan(D,timeL,inputL,numpoints,weights,0,k2ref,aucthr); % weights:ones, k2 reference: 0.1
-            par=[tmp2;tmp];
-            clear tmp tmp2
+			switch method
+				case 'mllog'
+					[tmp,tmp2]=piw_mlinlogan(D,timeL,inputL,numpoints,weights,0,k2ref,aucthr); % weights:ones, k2 reference: 0.1
+					par=[tmp2;tmp];
+					clear tmp tmp2
+				case 'pat'
+					[tmp,tmp2,tmp3]=piw_patlak(D,timeP,inputP,numpoints,weights,aucthr);
+					par=[tmp2;tmp;tmp3]; % Bstd B A
+					clear tmp tmp2 tmp3
+			end
             drawnow;
             clear D
             if lev==1 && coeff==1 && p==chunks
                 numP=size(par,1)-1;
 
                 for i=1:numP
-                    Wfname{i}=strcat(outfname(1:odp-1),num2str(ncoeff),'-',num2str(depth),'_mllog_p',num2str(i),'.wd3'); 
+                    Wfname{i}=strcat(outfname(1:odp-1),num2str(ncoeff),'-',num2str(depth),'_',method,'_p',num2str(i),'.wd3'); 
                     saveparwav(Wfname{i},lc,s);
                     wapi_extendFile([Wfname{i} '1'],lc*8);
                 end
-                Wfname_std=strcat(outfname(1:odp-1),num2str(ncoeff),'-',num2str(depth),'_mllog_std.wd3');
+                Wfname_std=strcat(outfname(1:odp-1),num2str(ncoeff),'-',num2str(depth),'_',method,'_std.wd3');
                 saveparwav(Wfname_std,lc,s);
                 wapi_extendFile([Wfname_std '1'],lc*8);
             end
@@ -739,9 +776,16 @@ for p=chunks:-1:1
         D=d;
     end
     clear d
-    [tmp,tmp2]=piw_mlinlogan(D,timeL,inputL,numpoints,weights,0,k2ref,aucthr); % weights:ones, k2 reference: 0.1
-    par=[tmp2;tmp];
-    clear tmp tmp2
+	switch method
+		case 'mllog'
+			[tmp,tmp2]=piw_mlinlogan(D,timeL,inputL,numpoints,weights,0,k2ref,aucthr); % weights:ones, k2 reference: 0.1
+			par=[tmp2;tmp];
+			clear tmp tmp2
+		case 'pat'
+			[tmp,tmp2,tmp3]=piw_patlak(D,timeP,inputP,numpoints,weights,aucthr);
+			par=[tmp2;tmp;tmp3]; % Bstd B A
+			clear tmp tmp2 tmp3
+	end
     clear D
     drawnow
     for i=1:numP
@@ -798,9 +842,9 @@ for p=1:numP
       pim.volume=tmp;
     end
     if numP>1
-      pim.filename=strcat(outfname(1:odp-1),num2str(ncoeff),'-',num2str(depth),'_mllog_',sprintf('%d',p),outfname(odp:end));
+      pim.filename=strcat(outfname(1:odp-1),num2str(ncoeff),'-',num2str(depth),'_',method,'_',sprintf('%d',p),outfname(odp:end));
     else
-      pim.filename=strcat(outfname(1:odp-1),num2str(ncoeff),'-',num2str(depth),'_mllog',outfname(odp:end));
+      pim.filename=strcat(outfname(1:odp-1),num2str(ncoeff),'-',num2str(depth),'_',method,outfname(odp:end));
     end;
 
     dtype=wapi_defaults('outputDataType'); % 'int32';
